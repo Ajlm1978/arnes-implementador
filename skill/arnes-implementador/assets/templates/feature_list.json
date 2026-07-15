@@ -1,0 +1,14 @@
+{
+  "_reglas": "WIP=1. A 'passing' SOLO con verificación EJECUTADA + evidencia. El harness controla el estado, no el agente. Estados: not_started | in_progress | blocked | passing",
+  "_verificacion_base": "‹VERIFY_CMD real del repo›",
+  "features": [
+    {
+      "id": "F01", "priority": 1, "area": "‹área›",
+      "title": "‹feature real, completable en una sesión›",
+      "user_visible_behavior": "‹comportamiento observable cuando funciona›",
+      "status": "not_started",
+      "verification": "‹comando ejecutable que lo confirma›",
+      "evidence": "", "notes": ""
+    }
+  ]
+}
