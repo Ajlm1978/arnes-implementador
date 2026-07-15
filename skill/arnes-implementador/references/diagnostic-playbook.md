@@ -32,8 +32,9 @@ Cada pregunta sin respuesta clara = HUECO. Anótalo.
 4. **Sin estado entre sesiones**: reconstruir contexto cuesta >3 min. → Arreglo: PROGRESS + DECISIONS + rituales.
 5. **Alcance sin límites**: no WIP=1, sin priorización, backlog gigante. → Arreglo: feature_list priorizado,
    una sola feature activa, la siguiente solo tras verificación.
-6. **Higiene/seguridad**: ¿`.env*` en `.gitignore`? ¿hay secretos commiteados? ¿`todo.md` desincronizado del
-   código? (verifica el estado real en el código, no en los checkboxes — suelen mentir).
+6. **Higiene/seguridad (ALTA)**: escanea el árbol Y el historial de git en busca de secretos. ¿`.env*` en
+   `.gitignore`? ¿`.env.example` existe y documenta TODAS las env vars? ¿`todo.md` desincronizado del código?
+   Si hay secretos commiteados o env vars sin documentar → aplica el SOP de la sección F (obligatorio, antes de instalar el arnés).
 
 ## D. Reconciliar backlog vs realidad
 No confíes en los checkboxes de un `todo.md`. Haz grep en el código de las áreas críticas (auth, billing,
@@ -43,3 +44,39 @@ que en realidad ya existen, y "hechas" que no.
 ## E. Severidad
 Clasifica cada hallazgo ALTA/MEDIA/BAJA por impacto en la fiabilidad y en el objetivo del usuario (ej. lanzar).
 Lo que bloquea arrancar/verificar/desplegar es ALTA.
+
+
+## F. SOP crítico — secretos en el repo y `.env.example`
+
+Aprendido en campo (proyecto real con PAT + Stripe webhook secret commiteados): detectar el secreto no
+basta; **borrarlo en un commit nuevo NO lo elimina** — sigue vivo en el historial de git y cualquiera que
+clone lo recupera. Este SOP es severidad ALTA y va ANTES de instalar el arnés.
+
+### F.1 Detectar
+Escanea árbol + historial:
+```
+git grep -iE 'api[_-]?key|secret|token|password|BEGIN [A-Z ]*PRIVATE KEY' -- . ':!*.example'
+git log -p -S 'whsec_' -S 'sk_live' -S 'github_pat_' 2>/dev/null | head
+```
+Patrones típicos: `sk_live_`/`sk_test_` (Stripe), `whsec_` (Stripe webhook), `github_pat_`/`ghp_` (GitHub),
+`AKIA` (AWS), `xoxb-` (Slack), connection strings con contraseña, bloques `PRIVATE KEY`.
+Si hay `gitleaks`/`trufflehog`, úsalos: `gitleaks detect --no-banner`.
+
+### F.2 Remediar (obligatorio, en orden)
+1. **ROTAR** el secreto en su proveedor. Asume que está comprometido, punto.
+2. **PURGAR del historial** (no solo del HEAD): `git filter-repo --replace-text expr.txt` (o BFG
+   `--replace-text`). Luego `git push --force` (coordina con el equipo; reescribe la historia).
+3. **Mover a env var** y documentarlo en `.env.example` con un placeholder, nunca el valor real.
+4. **Confirmar `.gitignore`** cubre `.env`, `.env.*` (excepto `.env.example`).
+No marques esto resuelto sin haber hecho los 4 pasos. Rotar sin purgar, o purgar sin rotar, deja el hueco abierto.
+
+### F.3 Generar `.env.example` desde el código
+Si faltan env vars documentadas (arranque en frío/deploy imposible por fail-fast), sintetiza el archivo
+escaneando el código:
+```
+grep -rhoE 'process\.env\.[A-Z0-9_]+' --include='*.ts' --include='*.js' . | sed 's/process.env.//' | sort -u
+# Python: grep -rhoE 'os\.environ\[?["'"'"'][A-Z0-9_]+' ...
+```
+Crea `.env.example` con TODAS las claves encontradas y placeholders (`KEY=` o `KEY=your-value-here`).
+Marca cuáles son obligatorias (las que un fail-fast exige al arrancar). Esto documenta el contrato de entorno
+y previene el crash "build pasa pero el proceso muere antes del healthcheck".

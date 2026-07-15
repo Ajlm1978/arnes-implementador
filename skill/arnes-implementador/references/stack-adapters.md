@@ -22,6 +22,15 @@ manifiesto antes de decidir. La verificación base debe cubrir, cuando exista: t
 ## Rust
 - `Cargo.toml`. INSTALL: `cargo fetch`. VERIFY: `cargo clippy -- -D warnings && cargo test`. START: `cargo run`.
 
+## Bases de datos y verificación (transversal)
+- La verificación base NO debe requerir la DB real corriendo. Tests que abren conexión a Postgres/MySQL/TiDB
+  son **integration** → sepáralos de `test:unit`. Usa mocks/in-memory para el gate del arnés.
+- **MySQL-compatible (TiDB, PlanetScale, MySQL)**: ORMs como Drizzle/Prisma funcionan; migraciones vía la CLI
+  del ORM. TiDB es distribuido y wire-compatible con MySQL — trátalo como MySQL para comandos, pero no asumas
+  features MySQL exclusivas. La cadena de conexión va en env var (`DATABASE_URL`), documentada en `.env.example`.
+- **Postgres (Supabase/Neon/RDS)**: igual — conexión por env var; pooling (Supavisor/pgbouncer) afecta el
+  string. Nunca hardcodees credenciales.
+
 ## Otros / monorepos
 - Java/Kotlin: `mvn -q verify` / `./gradlew build`. .NET: `dotnet test`.
 - Monorepo (turbo/nx/pnpm workspaces): usa el runner del monorepo (`turbo run check test`) o filtra por paquete.

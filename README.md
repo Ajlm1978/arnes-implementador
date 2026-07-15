@@ -67,6 +67,14 @@ PRs bienvenidos: nuevos adaptadores de stack (`references/stack-adapters.md`), m
 
 Metodología basada en el trabajo público de harness engineering (Anthropic, OpenAI, A. Osmani, A. Karpathy) sintetizado en `references/kb-arnes.md`. Empaquetado como skill por Amilcar Leon.
 
+## Changelog
+
+### v1.1 — reforzado en campo
+- **SOP crítico de secretos**: detectar en árbol + historial de git, y remediar (rotar + purgar historial con
+  `git filter-repo`/BFG + force-push). Borrar del HEAD no basta.
+- **Síntesis de `.env.example`** desde el código (escaneo de `process.env.*`) para cerrar el hueco de arranque en frío.
+- **Adaptador de DB MySQL-compatible** (TiDB, PlanetScale) + regla: la verificación base no debe requerir la DB real.
+
 ## Licencia
 
 MIT — ver [LICENSE](LICENSE).

@@ -62,8 +62,10 @@ Aplica el **playbook completo** en `references/diagnostic-playbook.md`. En resum
      del healthcheck). Distingue capa entorno de capa código.
   4. Sin estado entre sesiones (no hay PROGRESS/decisiones → arranque en frío caro).
   5. Alcance sin límites (no WIP=1, sin Definition of Done por feature; backlog gigante sin priorizar).
-- **Higiene**: `.env*` en `.gitignore`; secretos fuera del repo; docs sincronizadas con el código;
-  `todo.md`/backlog que puede estar DESACTUALIZADO respecto al código real (verifica en el código, no en los checkboxes).
+- **Higiene y secretos (ALTA)**: escanea árbol + **historial de git** por secretos (PAT, `sk_live`, `whsec_`,
+  AWS keys, private keys, connection strings). `.env*` en `.gitignore`; `.env.example` que documente TODAS las
+  env vars; backlog que puede estar DESACTUALIZADO vs el código (verifica en el código, no en los checkboxes).
+  Detalle y remediación: sección F de `references/diagnostic-playbook.md`.
 
 Atribuye cada hallazgo a UNA capa: tarea · contexto · entorno · verificación · estado. Así el arreglo es preciso.
 
@@ -89,6 +91,8 @@ Presenta un reporte corto y directo. Usa esta estructura:
 ```
 
 Sé escéptico y honesto: si la verificación no pasa por un tema de entorno, dilo; no maquilles un "verde".
+Si encuentras secretos commiteados, es lo PRIMERO del reporte (ALTA) con su SOP de remediación (rotar +
+purgar historial), y va ANTES de instalar el arnés — no se resuelve borrándolos en un commit nuevo.
 Espera confirmación o ajustes del usuario en prioridades/scope antes de la Fase 3 (salvo que pida ir directo).
 
 ## FASE 3 — Construir el arnés adaptado
@@ -129,6 +133,8 @@ Regla anti-vicio: no engordes el router con reglas; usa checks ejecutables.
 - **WIP=1 + Definition of Done por feature**.
 - **Cada fallo fortalece el arnés**: promueve hallazgos recurrentes a checks ejecutables.
 - **Seguridad**: nunca sugieras commitear secretos; si el usuario pega un token, adviértele que lo revoque.
+  Secreto ya commiteado = incidente: rotar + purgar del historial (git filter-repo/BFG) + force-push. Borrarlo
+  del HEAD NO basta. Genera `.env.example` desde el código cuando las env vars no estén documentadas.
 
 ## Referencias
 - `references/kb-arnes.md` — principios completos de harness engineering (la teoría).
