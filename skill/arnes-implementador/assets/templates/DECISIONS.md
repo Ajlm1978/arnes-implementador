@@ -1,4 +1,7 @@
 # Registro de Decisiones — ‹PROYECTO›
+> Este archivo se commitea. NUNCA pegues aquí valores de secretos/tokens (ni parciales), salida cruda de
+> comandos sin redactar, connection strings, rutas absolutas de tu máquina ni SHAs de commits que contuvieron
+> secretos. Evidencia = resumen ("tsc: 0 errores; vitest: 42/42"), no volcado.
 
 > Conserva el PORQUÉ. Una entrada por decisión no trivial, escrita en la misma sesión.
 > Formato: fecha · decisión · razón · alternativa rechazada · restricción resultante.

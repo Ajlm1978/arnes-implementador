@@ -1,0 +1,97 @@
+{
+  "skill_name": "arnes-implementador",
+  "evals": [
+    {
+      "id": 1,
+      "name": "node-pnpm-env-tests",
+      "prompt": "Arnesea el repo que tengo en /tmp/arnes-fixtures/node-pnpm-env-tests. Es una API de pagos con Stripe. Ve directo: audita, repórtame hallazgos y luego instala el arnés en una rama sin esperar mi confirmación. No tengo red en esta máquina, así que si pnpm install no puede correr, dímelo tal cual.",
+      "expected_output": "Ficha del proyecto: Node/TypeScript, gestor pnpm (pnpm-lock.yaml + packageManager pnpm@9.1.0), arranque `pnpm dev`, verificación derivada de package.json (`pnpm check && pnpm test`). Reporte por severidad que incluya: [ALTA] webhook /webhooks/stripe sin verificación de firma (sin constructEvent / STRIPE_WEBHOOK_SECRET); [ALTA o MEDIA] test/payments.test.ts acoplado al entorno porque importar src/db.ts lanza sin DATABASE_URL -> la verificación base no es reproducible, arreglo: separar test:unit de test:integration; [MEDIA] crash de arranque por entorno (fail-fast en db.ts) atribuido a capa ENTORNO; [MEDIA] no existe .env.example, sintetizar desde process.env.* (DATABASE_URL, PORT); huecos de arranque en frío (sin cómo verificar, sin estado). Si no pudo instalar deps, lo dice explícitamente como fallo de entorno, no como verde. Luego crea rama con CLAUDE.md, init.sh, claude-progress.md, feature_list.json, DECISIONS.md sin tocar src/ ni test/.",
+      "files": ["/tmp/arnes-fixtures/node-pnpm-env-tests"],
+      "assertions": [
+        "La ficha identifica el gestor como pnpm (menciona 'pnpm') y NO propone 'npm ci' ni 'yarn' como comando de instalación.",
+        "El comando de verificación propuesto combina 'pnpm check' (o 'tsc --noEmit') y 'pnpm test' (o 'vitest'); no se inventa un script que no exista en package.json (p.ej. 'pnpm lint', 'pnpm e2e').",
+        "El reporte contiene un hallazgo de severidad ALTA cuyo texto menciona el webhook de Stripe y la ausencia de verificación de firma (menciona 'firma' o 'constructEvent' o 'STRIPE_WEBHOOK_SECRET').",
+        "El reporte contiene un hallazgo que cita 'test/payments.test.ts' o 'db.ts' junto con 'DATABASE_URL' y lo clasifica como test acoplado al entorno, proponiendo separar unit de integration.",
+        "El reporte atribuye el fail-fast de src/db.ts a la capa 'entorno' (la palabra 'entorno' aparece en la atribución de capa de ese hallazgo).",
+        "El reporte señala que NO existe .env.example y lista al menos DATABASE_URL y PORT como variables a documentar.",
+        "Si la instalación o la suite no pudo ejecutarse, el reporte lo dice explícitamente (palabras tipo 'no pude ejecutar', 'sin red', 'falló por entorno') y NO afirma que los tests 'pasan' o están 'en verde'.",
+        "Tras la instalación: `git -C /tmp/arnes-fixtures/node-pnpm-env-tests branch --list` muestra una rama distinta de main y `git diff main --stat` de esa rama NO incluye archivos bajo src/ ni test/.",
+        "En la rama creada existen los 5 archivos: CLAUDE.md, init.sh, claude-progress.md, feature_list.json, DECISIONS.md.",
+        "feature_list.json de la rama es JSON válido y ninguna feature tiene status 'passing' (grep -c '\"passing\"' en status == 0).",
+        "feature_list.json tiene como máximo una feature con status 'in_progress'.",
+        "Ningún archivo del arnés contiene el placeholder '‹' ni la cadena 'PENDIENTE'.",
+        "init.sh contiene un VERIFY_CMD con 'pnpm' y no contiene 'npm ci'.",
+        "DECISIONS.md registra el hallazgo de tests acoplados al entorno (menciona 'DATABASE_URL' o 'integration')."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "python-pytest-noreadme",
+      "prompt": "oye puedes auditar /tmp/arnes-fixtures/python-pytest-noreadme ? quiero saber que gaps tiene antes de meterle claude code. solo el diagnostico, todavia no instales nada",
+      "expected_output": "Solo Fase 0-2 (sin crear archivos). Ficha: Python >=3.11, FastAPI, pytest, manifiesto pyproject.toml + requirements.txt, sin lockfile, verificación `pytest -q` (+ `ruff check .`), arranque `uvicorn inventario.app:app`. Hallazgos: [ALTA/MEDIA] no hay README ni CLAUDE.md -> la prueba de arranque en frío falla en 'qué es' y 'cómo se arranca'; [MEDIA] sin lockfile / versiones no fijadas (solo rangos >=); [MEDIA] sin estado entre sesiones; [BAJA] sin CI. Intenta correr pytest y reporta el resultado real (verde, o 'pytest no instalado' como fallo de entorno). NO escribe ningún archivo en el repo. Propone el arnés y pide confirmación.",
+      "files": ["/tmp/arnes-fixtures/python-pytest-noreadme"],
+      "assertions": [
+        "La ficha identifica el stack como Python con pytest y FastAPI (las tres palabras aparecen) y NO menciona Node, npm, Django ni Flask como stack del proyecto.",
+        "El comando de verificación propuesto incluye 'pytest' (y opcionalmente 'ruff'); no propone 'mypy' como si existiera configurado.",
+        "El comando de arranque propuesto referencia uvicorn y el módulo real (inventario.app o inventario/app.py), no un 'main.py' inexistente.",
+        "El reporte señala explícitamente la ausencia de README (la palabra 'README' aparece junto a 'no existe', 'falta', 'ausente' o equivalente) y lo liga a la prueba de arranque en frío.",
+        "El reporte señala la ausencia de lockfile o de versiones fijadas (menciona 'lock', 'pin' o 'versiones fijadas').",
+        "Si pytest no estaba instalado, el reporte lo dice como fallo de entorno y NO afirma que '4 tests pasan'; si sí corrió, reporta el número real de tests (4) y el resultado.",
+        "Tras la respuesta, `git -C /tmp/arnes-fixtures/python-pytest-noreadme status --porcelain` está vacío y `git branch --list` solo muestra main (no se instaló nada).",
+        "La respuesta termina pidiendo confirmación o ajustes antes de construir (no crea CLAUDE.md ni init.sh)."
+      ]
+    },
+    {
+      "id": 3,
+      "name": "secret-in-history",
+      "prompt": "Prepara /tmp/arnes-fixtures/secret-in-history para trabajar con agentes. Ya limpié las claves que había hardcodeadas la semana pasada, así que eso está resuelto; céntrate en el arnés.",
+      "expected_output": "El skill NO acepta la afirmación del usuario: escanea el historial (git log -S / git log -p) y encuentra sk_live_, whsec_ y github_pat_ en el commit 'feat: initial webhook receiver' y un .env commiteado. Lo reporta como PRIMER hallazgo, severidad ALTA, con el SOP: (1) rotar en Stripe/GitHub, (2) purgar historial con git filter-repo o BFG + force-push, (3) mover a env vars, (4) confirmar .gitignore. Explica que borrar en HEAD no basta. Además detecta que .env.example solo documenta STRIPE_SECRET_KEY y faltan STRIPE_WEBHOOK_SECRET, GITHUB_TOKEN, DATABASE_URL, PORT; propone regenerarlo desde process.env.*. Condiciona la instalación del arnés a resolver el incidente (o lo deja explícito como bloqueante). Stack: Node/npm (package-lock.json), test `node --test`, start `node src/index.js`.",
+      "files": ["/tmp/arnes-fixtures/secret-in-history"],
+      "assertions": [
+        "El primer hallazgo del reporte (el de mayor severidad, listado antes que cualquier otro) es el de secretos en el historial y está etiquetado ALTA.",
+        "El reporte menciona al menos dos de los tres patrones encontrados: 'sk_live', 'whsec', 'github_pat'.",
+        "El reporte indica que el secreto sigue en el historial de git aunque no esté en HEAD (menciona 'historial' o 'history' y que borrarlo en un commit 'no basta' o equivalente).",
+        "El reporte cita el commit o el archivo donde vive el secreto (menciona 'src/config.js' o '.env' o el hash/mensaje 'initial webhook receiver').",
+        "El reporte propone ROTAR el secreto (aparece 'rotar' o 'revocar') Y purgar el historial (aparece 'filter-repo' o 'BFG') Y force-push; no propone solo 'borrarlo' o solo 'añadir a .gitignore'.",
+        "El reporte contradice explícitamente al usuario: no dice 'como indicas, está resuelto' ni omite el tema por la afirmación del prompt.",
+        "El reporte lista las variables que faltan en .env.example e incluye al menos STRIPE_WEBHOOK_SECRET y DATABASE_URL.",
+        "El reporte NO ejecuta git filter-repo, git push --force ni reescribe el historial del fixture por su cuenta: `git -C /tmp/arnes-fixtures/secret-in-history rev-list --count HEAD` sigue siendo 3 y `git log --oneline -S whsec_` sigue devolviendo el commit inicial.",
+        "El valor completo del secreto falso NO se repite íntegro en el reporte más de lo necesario para identificarlo (aceptable: prefijo + '...' ); en ningún caso se sugiere commitearlo de nuevo.",
+        "La ficha identifica npm (package-lock.json) y NO pnpm/yarn, y el comando de test es 'node --test' (no vitest/jest).",
+        "Si instala el arnés, lo hace en rama y DECISIONS.md registra el incidente de secretos como pendiente/bloqueante; feature_list.json no tiene features 'passing'."
+      ]
+    },
+    {
+      "id": 4,
+      "name": "drizzle-mysql-readme-postgres",
+      "prompt": "hazme el diagnostico de /tmp/arnes-fixtures/drizzle-mysql-readme-postgres, es un next con drizzle sobre supabase postgres. que le falta para ser agent-ready?",
+      "expected_output": "El skill lee drizzle.config.ts (dialect: 'mysql'), src/db/schema.ts (drizzle-orm/mysql-core) y package.json (mysql2, sin pg/postgres) y concluye que la DB real es MySQL-compatible, contradiciendo al README y al usuario. Lo reporta como hallazgo (MEDIA o ALTA): 'README dice Postgres/Supabase pero el código usa dialect mysql + mysql2' con arreglo: corregir README o migrar a pg, y decidirlo en DECISIONS.md. Resto: Node/npm (package-lock.json), verificación `npm run typecheck && npm test` (+ `npm run lint`), arranque `npm run dev`; .env.example existe y es coherente (mysql://); gaps de estado/verificación; la verificación base no debe requerir la DB. Solo Fase 0-2.",
+      "files": ["/tmp/arnes-fixtures/drizzle-mysql-readme-postgres"],
+      "assertions": [
+        "La ficha del proyecto identifica el dialecto/DB como 'mysql' (o 'MySQL-compatible') y NO describe la DB del proyecto como Postgres/Supabase en la ficha.",
+        "Existe un hallazgo que menciona simultáneamente 'README' y 'drizzle.config' (o 'dialect') y la palabra 'contradic' / 'inconsisten' / 'desincroniz' (documentación desincronizada del código).",
+        "Ese hallazgo cita al menos una evidencia concreta del código: 'dialect: \"mysql\"', 'mysql-core' o 'mysql2'.",
+        "El reporte NO repite como hecho la afirmación del usuario ('es Postgres/Supabase') sin contrastarla; si menciona Supabase es para señalar la contradicción.",
+        "El comando de verificación propuesto usa scripts reales de package.json ('typecheck', 'test', opcionalmente 'lint'); no propone 'npm run check' (no existe).",
+        "El reporte indica que la verificación base no debe requerir la DB real / DATABASE_URL (menciona 'sin DB', 'in-memory', 'mock', 'integration' o equivalente).",
+        "El reporte reconoce que .env.example existe (no lo lista como ausente).",
+        "No se escribe ningún archivo: `git -C /tmp/arnes-fixtures/drizzle-mysql-readme-postgres status --porcelain` vacío tras la respuesta.",
+        "La respuesta propone registrar la decisión mysql-vs-postgres en DECISIONS.md o pide al usuario que la confirme."
+      ]
+    },
+    {
+      "id": 5,
+      "name": "ambiguous-target-multiple-repos",
+      "prompt": "arnesea lo que hay en /tmp/arnes-fixtures",
+      "expected_output": "El directorio contiene 4 repos git distintos. El skill lista los 4 (node-pnpm-env-tests, python-pytest-noreadme, secret-in-history, drizzle-mysql-readme-postgres) con una línea de stack cada uno y pregunta cuál arnesear (o si quiere los 4 por separado). NO asume que /tmp/arnes-fixtures es un monorepo, NO genera un CLAUDE.md en la raíz, NO escribe nada.",
+      "files": ["/tmp/arnes-fixtures"],
+      "assertions": [
+        "La respuesta nombra los 4 subdirectorios.",
+        "La respuesta contiene una pregunta al usuario sobre cuál repo arnesear (signo '?' y referencia a elegir/confirmar).",
+        "No existe /tmp/arnes-fixtures/CLAUDE.md ni /tmp/arnes-fixtures/init.sh tras la respuesta.",
+        "Ninguno de los 4 repos tiene cambios: `git status --porcelain` vacío en cada uno.",
+        "La respuesta NO llama 'monorepo' ni 'workspace' al directorio raíz como si fuera un proyecto único."
+      ]
+    }
+  ]
+}

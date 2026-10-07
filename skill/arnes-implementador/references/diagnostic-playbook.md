@@ -52,20 +52,29 @@ Aprendido en campo (proyecto real con PAT + Stripe webhook secret commiteados): 
 basta; **borrarlo en un commit nuevo NO lo elimina** — sigue vivo en el historial de git y cualquiera que
 clone lo recupera. Este SOP es severidad ALTA y va ANTES de instalar el arnés.
 
-### F.1 Detectar
-Escanea árbol + historial:
+### F.1 Detectar (sin imprimir valores)
+Los comandos deben devolver RUTAS y COMMITS, nunca el secreto. Usa una sola regex (varios `-S` en
+`git log` solo conservan el último) y `--all` para cubrir ramas:
 ```
-git grep -iE 'api[_-]?key|secret|token|password|BEGIN [A-Z ]*PRIVATE KEY' -- . ':!*.example'
-git log -p -S 'whsec_' -S 'sk_live' -S 'github_pat_' 2>/dev/null | head
+PAT='(sk_live_|sk_test_|whsec_|github_pat_|ghp_|AKIA[0-9A-Z]{16}|xoxb-|BEGIN [A-Z ]*PRIVATE KEY|mysql://[^:]+:[^@]+@|postgres(ql)?://[^:]+:[^@]+@)'
+git grep -lIE "$PAT" -- . ':!*.example'                # árbol: solo rutas
+git log --all --oneline -G"$PAT"                       # historial: solo commits
+git grep -hoIE '(sk_live|sk_test|whsec|github_pat|ghp)_[A-Za-z0-9]{4}' | sort -u   # tipo + 4 chars, para clasificar
 ```
-Patrones típicos: `sk_live_`/`sk_test_` (Stripe), `whsec_` (Stripe webhook), `github_pat_`/`ghp_` (GitHub),
-`AKIA` (AWS), `xoxb-` (Slack), connection strings con contraseña, bloques `PRIVATE KEY`.
-Si hay `gitleaks`/`trufflehog`, úsalos: `gitleaks detect --no-banner`.
+Segunda pasada opcional (ruidosa): `git grep -lIiE 'api[_-]?key|secret|token|password' -- . ':!*.example'`.
+Si hay `gitleaks`: `gitleaks detect --no-banner --redact`. No uses `-p` ni `cat` sobre los hallazgos.
 
 ### F.2 Remediar (obligatorio, en orden)
 1. **ROTAR** el secreto en su proveedor. Asume que está comprometido, punto.
-2. **PURGAR del historial** (no solo del HEAD): `git filter-repo --replace-text expr.txt` (o BFG
-   `--replace-text`). Luego `git push --force` (coordina con el equipo; reescribe la historia).
+2. **PURGAR del historial — SOLO el humano decide.** Reescribir historia es destructivo e irreversible para
+   colaboradores. Tú NUNCA ejecutas `git filter-repo`, BFG, `git push --force`/`--force-with-lease`,
+   `reflog expire` ni `gc --prune` por tu cuenta. Flujo: (a) confirma que el paso 1 (rotar) está hecho y
+   verificado por el humano; (b) presenta el plan: ramas (`git branch -r`), colaboradores recientes
+   (`git shortlog -sn --since=90.days`), PRs abiertos y el `expr.txt` exacto; (c) pide la frase literal
+   "CONFIRMO reescribir la historia de <repo>" — un "ok"/"sí"/"dale" no basta; (d) clon fresco
+   (`git clone --mirror`) y el original como respaldo; (e) `--force-with-lease` rama por rama; (f) avisa
+   que todos re-clonan y que forks/PRs cerrados/cachés conservan el secreto: la rotación es la única
+   mitigación real. Sin confirmación → queda como ALTA ABIERTA en el reporte y en DECISIONS.md.
 3. **Mover a env var** y documentarlo en `.env.example` con un placeholder, nunca el valor real.
 4. **Confirmar `.gitignore`** cubre `.env`, `.env.*` (excepto `.env.example`).
 No marques esto resuelto sin haber hecho los 4 pasos. Rotar sin purgar, o purgar sin rotar, deja el hueco abierto.
