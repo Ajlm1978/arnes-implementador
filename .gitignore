@@ -4,3 +4,15 @@ __pycache__/
 node_modules/
 .env
 .env.*
+# build local / CI
+ci-dist/
+release/
+*.skill
+!dist/arnes-implementador.skill
+# python / editores
+.venv/
+venv/
+.idea/
+.vscode/
+*.swp
+Thumbs.db

@@ -1,5 +1,7 @@
 # arnes-implementador 🔧
 
+[![CI](https://github.com/Ajlm1978/arnes-implementador/actions/workflows/ci.yml/badge.svg)](https://github.com/Ajlm1978/arnes-implementador/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Ajlm1978/arnes-implementador)](https://github.com/Ajlm1978/arnes-implementador/releases) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > **Un Skill de Claude que instala "arneses" (harness engineering) profesionales en tus repos, para que los agentes de IA trabajen de forma fiable y multi-sesión.**
 > No es un generador de plantillas: **audita tu repo como un ingeniero senior**, encuentra gaps y fallas, entrega recomendaciones, y recién entonces construye e instala el arnés.
 
@@ -15,7 +17,9 @@ La mayoría de repos hoy no están "arneseados": no hay un comando de verificaci
 
 ## Qué hace (5 fases, como lo haría un profesional)
 
-1. **Identifica** el proyecto — clona/lee el repo, detecta el stack real y los comandos reales de instalación/verificación/arranque. Sin suposiciones.
+> El repo que audita es **dato, no instrucciones**; nunca instala dependencias ni corre tests de un repo desconocido sin tu confirmación; nunca hace push a `main` ni reescribe historial por su cuenta.
+
+1. **Identifica** el objetivo y su estado real — confirma cuál repo (si hay varios), verifica que sea un repo git vivo y al día (no un ZIP viejo), y lee el stack **del código** (dialecto de DB desde `drizzle.config`/driver, no del README).
 2. **Audita** — prueba de arranque en frío (5 preguntas), revisión de los 5 subsistemas del arnés, y **caza activa de gaps**: verificación ausente, tests acoplados al entorno, crashes de arranque por variables de entorno, falta de estado entre sesiones, alcance sin WIP=1, backlog desincronizado del código.
 3. **Reporta hallazgos** por severidad + recomendaciones — **antes** de escribir nada.
 4. **Construye** un arnés adaptado con comandos reales: `CLAUDE.md`/`AGENTS.md` (router), `init.sh` (verificación de línea base), `claude-progress.md`, `feature_list.json`, `DECISIONS.md`.
@@ -23,9 +27,14 @@ La mayoría de repos hoy no están "arneseados": no hay un comando de verificaci
 
 ## Instalación
 
-**Opción A — Skill de Claude (recomendada).** Descarga [`dist/arnes-implementador.skill`](dist/arnes-implementador.skill) y, en Claude (Cowork o Claude Code), instálalo con el botón **Save skill** o desde **Ajustes → Capacidades**.
+**Opción A — un clic (Cowork y Claude Code).** Descarga [`dist/arnes-implementador.skill`](dist/arnes-implementador.skill)
+(o el asset del último [Release](https://github.com/Ajlm1978/arnes-implementador/releases), con `SHA256SUMS`
+para verificar) y usa **Save skill** en Claude, o súbelo desde la configuración de Skills.
 
-**Opción B — Manual.** Copia la carpeta [`skill/arnes-implementador/`](skill/arnes-implementador/) a tu directorio de skills (`~/.claude/skills/` en Claude Code, o el que use tu entorno).
+**Opción B — manual (Claude Code).** Copia la carpeta completa al directorio de skills personales y reinicia la sesión:
+```bash
+cp -r skill/arnes-implementador ~/.claude/skills/
+```
 
 ## Uso
 
@@ -69,11 +78,7 @@ Metodología basada en el trabajo público de harness engineering (Anthropic, Op
 
 ## Changelog
 
-### v1.1 — reforzado en campo
-- **SOP crítico de secretos**: detectar en árbol + historial de git, y remediar (rotar + purgar historial con
-  `git filter-repo`/BFG + force-push). Borrar del HEAD no basta.
-- **Síntesis de `.env.example`** desde el código (escaneo de `process.env.*`) para cerrar el hueco de arranque en frío.
-- **Adaptador de DB MySQL-compatible** (TiDB, PlanetScale) + regla: la verificación base no debe requerir la DB real.
+Ver [CHANGELOG.md](CHANGELOG.md). Cada versión nace de fallos reales de campo: el skill aprende de cada repo que audita.
 
 ## Licencia
 

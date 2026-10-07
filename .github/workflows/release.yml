@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write   # necesario para crear el Release y subir assets
+
+env:
+  SKILL_DIR: skill/arnes-implementador
+
+jobs:
+  release:
+    name: Publicar GitHub Release con .skill
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar PyYAML
+        run: python -m pip install --disable-pip-version-check "pyyaml>=6,<7"
+
+      - name: Tag == metadata.version del skill (fail closed)
+        run: |
+          set -euo pipefail
+          tag_ver="${GITHUB_REF_NAME#v}"
+          fm_ver=$(python -I - <<'PY'
+          import re, yaml
+          t = open("skill/arnes-implementador/SKILL.md", encoding="utf-8").read()
+          fm = yaml.safe_load(re.match(r"^---\n(.*?)\n---", t, re.S).group(1))
+          print((fm.get("metadata") or {}).get("version", ""))
+          PY
+          )
+          echo "tag=$tag_ver frontmatter=$fm_ver"
+          [ "$tag_ver" = "$fm_ver" ] || { echo "El tag v$tag_ver no coincide con metadata.version=$fm_ver"; exit 1; }
+
+      - name: Validar, reempaquetar y verificar contra dist/
+        run: |
+          python -I scripts/validate_skill.py "$SKILL_DIR" --check dist/arnes-implementador.skill
+          python -I scripts/validate_skill.py "$SKILL_DIR" --package release
+
+      - name: Checksum
+        run: |
+          cd release
+          sha256sum arnes-implementador.skill > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Extraer notas del CHANGELOG para esta versión
+        run: |
+          set -euo pipefail
+          ver="${GITHUB_REF_NAME#v}"
+          awk -v ver="$ver" '
+            $0 ~ "^## \\[" ver "\\]" { on=1; next }
+            on && /^## \[/ { exit }
+            on { print }
+          ' CHANGELOG.md > release/NOTES.md
+          if [ ! -s release/NOTES.md ]; then
+            echo "CHANGELOG.md no tiene sección ## [$ver]"; exit 1
+          fi
+          printf '\n\n**Instalación:** descarga `arnes-implementador.skill` y usa **Save skill** en Claude, o copia `skill/arnes-implementador/` a `~/.claude/skills/`.\n\n**Verificación:** `sha256sum -c SHA256SUMS`\n' >> release/NOTES.md
+
+      - name: Crear GitHub Release y adjuntar assets
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: release/NOTES.md
+          files: |
+            release/arnes-implementador.skill
+            release/SHA256SUMS
+          fail_on_unmatched_files: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}

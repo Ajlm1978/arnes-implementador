@@ -1,5 +1,16 @@
 # Adaptadores de stack — detección y comandos reales de verificación
 
+## Orden de autoridad para el stack (de mayor a menor)
+1. **Config de herramientas y código**: `drizzle.config.*` (`dialect`), `prisma/schema.prisma` (`provider`),
+   `knexfile`, `alembic.ini`/`settings.py` (`ENGINE`), `docker-compose.yml` (imagen de DB), esquema de
+   `DATABASE_URL` en `.env.example` (`mysql://` vs `postgres://`).
+2. **Dependencias**: lockfile/manifiesto — `mysql2`/`pg`/`@supabase/supabase-js`/`psycopg`/`pymysql`. Un
+   driver presente y otro ausente es evidencia fuerte.
+3. **CI/deploy**: workflows, `Dockerfile`, `railway.toml`, `vercel.json`.
+4. **README/docs**: solo intención. Si contradice a 1-3, gana el código y el conflicto es un hallazgo
+   (docs desincronizadas). Caso real: README decía "Postgres/Supabase", `drizzle.config` decía `mysql`.
+Escribe en el router la fuente de cada dato: `DB: MySQL (drizzle.config.ts → dialect: "mysql"; dep: mysql2)`.
+
 Objetivo: derivar INSTALL / VERIFY / START reales del repo, no de suposiciones. Lee siempre los scripts del
 manifiesto antes de decidir. La verificación base debe cubrir, cuando exista: tipos + tests (y lint si hay).
 
@@ -36,7 +47,11 @@ manifiesto antes de decidir. La verificación base debe cubrir, cuando exista: t
 - Monorepo (turbo/nx/pnpm workspaces): usa el runner del monorepo (`turbo run check test`) o filtra por paquete.
 - Si nada se detecta: pregunta al usuario los comandos reales; no inventes.
 
-## init.sh (patrón)
-Setea INSTALL_CMD/VERIFY_CMD/START_CMD reales al inicio (override por env). `set -euo pipefail`. Si VERIFY
-falla, el script sale ≠0 y el agente DEBE arreglar la base antes de features. Opcional: autodetección como
-respaldo, pero para un repo conocido, comandos explícitos y correctos > autodetección genérica.
+## init.sh (patrón de la plantilla)
+Sin `eval`: los comandos son arrays de bash. Los placeholders `‹…›` hacen fallar el script hasta rellenarlos
+con los comandos reales del repo (no autodetección a ciegas). `IGNORE_SCRIPTS=1` por defecto y lockfile
+congelado (`npm ci`, `pnpm install --frozen-lockfile`) para no ejecutar postinstall ni reescribir el lock en
+la primera pasada; Python en venv nuevo. Overrides por env (`INSTALL_CMD`, `VERIFY_CMD`, `START_CMD`) solo
+como comando simple, sin operadores de shell. Si VERIFY falla, el script sale ≠0 y la base se arregla antes
+de cualquier feature. En Windows ejecútalo con Git Bash o WSL; si el equipo es solo PowerShell, genera un
+`init.ps1` equivalente.

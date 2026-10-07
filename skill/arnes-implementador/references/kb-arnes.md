@@ -46,3 +46,17 @@ feedback de verificación · gestión de estado.** Bucle: ejecutar → observar 
 1. Repo as spec. 2. Evidencia > confianza. 3. Maker ≠ checker. 4. WIP=1 + Definition of Done.
 5. Router, no enciclopedia. 6. Impón invariantes (checks ejecutables), no microgestiones. 7. Estado en disco.
 8. El arnés es específico por modelo y caduca. 9. Cada fallo fortalece el arnés. 10. De prompts a loops.
+
+## Artefactos de crecimiento (añadir solo cuando un fallo observado lo justifique)
+- **session-handoff.md** — al cerrar: verificado / cambiado / roto / próxima acción / qué NO tocar. Justificado cuando la siguiente sesión arranca perdida.
+- **clean-state-checklist.md** — las 5 dimensiones de cierre como lista verificable. Justificado cuando se acumulan artefactos de debug o builds rotos entre sesiones.
+- **evaluator-rubric.md** — 6 dimensiones 0-2 (corrección, verificación, alcance, fiabilidad, mantenibilidad, entrega) para un checker independiente. Justificado cuando el agente se autoevalúa indulgente.
+- **quality-document.md** — salud A-D por módulo; las sesiones nuevas priorizan el peor. Justificado en bases grandes con deuda desigual.
+
+## Glosario
+- **Arnés (harness)**: todo lo que rodea al modelo — instrucciones, herramientas, entorno, estado, verificación.
+- **Definition of Done**: condición verificable por máquina para dar una tarea por terminada.
+- **Pass-gating**: una feature solo pasa a `passing` si su comando de verificación se ejecutó con éxito.
+- **WIP=1**: una sola feature activa a la vez.
+- **Maker ≠ checker**: quien genera no califica; evaluación por un agente/modelo independiente.
+- **Prueba de arranque en frío**: sesión nueva sin contexto que debe responder 5 preguntas solo con el repo.

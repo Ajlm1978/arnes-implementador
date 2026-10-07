@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SKILL_DIR: skill/arnes-implementador
+  DIST_FILE: dist/arnes-implementador.skill
+
+jobs:
+  validate:
+    name: Validar y empaquetar skill
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar PyYAML
+        run: python -m pip install --disable-pip-version-check "pyyaml>=6,<7"
+
+      - name: Frontmatter + límites (name, description <= 1024, SKILL.md < 500 líneas)
+        run: python -I scripts/validate_skill.py "$SKILL_DIR"
+
+      - name: bash -n sobre scripts de plantilla
+        run: |
+          set -euo pipefail
+          found=0
+          while IFS= read -r -d '' f; do
+            found=1
+            echo "bash -n $f"
+            bash -n "$f"
+          done < <(find "$SKILL_DIR/assets/templates" -name '*.sh' -print0)
+          [ "$found" = 1 ] || { echo "No se encontró ningún *.sh en assets/templates"; exit 1; }
+
+      - name: shellcheck (advertencias no bloquean; errores sí)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck >/dev/null
+          find "$SKILL_DIR/assets/templates" -name '*.sh' -print0 \
+            | xargs -0 shellcheck --severity=error
+
+      - name: JSON válido en plantillas
+        run: |
+          set -euo pipefail
+          find "$SKILL_DIR" -name '*.json' -print0 | while IFS= read -r -d '' f; do
+            echo "json: $f"
+            python -I -m json.tool "$f" >/dev/null
+          done
+
+      - name: Reempaquetar y comparar contenido con dist/
+        run: python -I scripts/validate_skill.py "$SKILL_DIR" --check "$DIST_FILE"
+
+      - name: Empaquetar artefacto de CI (para inspección manual)
+        run: python -I scripts/validate_skill.py "$SKILL_DIR" --package ci-dist
+
+      - name: Subir artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: arnes-implementador-skill-${{ github.sha }}
+          path: ci-dist/arnes-implementador.skill
+          if-no-files-found: error
+          retention-days: 14
+
+  changelog-and-version:
+    name: Versión coherente (README, CHANGELOG, frontmatter)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check "pyyaml>=6,<7"
+      - name: metadata.version == última entrada de CHANGELOG.md
+        run: |
+          set -euo pipefail
+          fm_ver=$(python -I - <<'PY'
+          import re, yaml
+          t = open("skill/arnes-implementador/SKILL.md", encoding="utf-8").read()
+          fm = yaml.safe_load(re.match(r"^---\n(.*?)\n---", t, re.S).group(1))
+          print((fm.get("metadata") or {}).get("version", ""))
+          PY
+          )
+          cl_ver=$(grep -m1 -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | tr -d '#[] ')
+          echo "frontmatter=$fm_ver changelog=$cl_ver"
+          [ -n "$fm_ver" ] || { echo "Falta metadata.version en SKILL.md"; exit 1; }
+          [ "$fm_ver" = "$cl_ver" ] || { echo "metadata.version ($fm_ver) != CHANGELOG ($cl_ver)"; exit 1; }
