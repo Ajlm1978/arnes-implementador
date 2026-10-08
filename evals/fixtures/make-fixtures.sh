@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# evals/fixtures/make-fixtures.sh — genera 4 repos sintéticos para los task-evals de arnes-implementador.
+# evals/fixtures/make-fixtures.sh — genera 5 repos sintéticos para los task-evals de arnes-implementador.
 # Idempotente (borra y recrea), sin red, sin dependencias más allá de bash + git.
 # Uso: bash evals/fixtures/make-fixtures.sh [ROOT]   (default ROOT=/tmp/arnes-fixtures)
 set -euo pipefail
@@ -357,8 +357,90 @@ export const slug = (s: string) => s.toLowerCase().replace(/\s+/g, "-");
 EOF
 commit "feat: slug helper"
 
+# ---------------------------------------------------------------------------
+# (e) arneseado-con-docs-kb: repo YA arneseado (Modo M) + memoria paralela docs/kb de project-kb,
+#     7 sesiones sin rotar, secreto falso pegado en CONFIGURATIONS.md y F02 con test que FALLA.
+# ---------------------------------------------------------------------------
+fresh_repo "$ROOT/arneseado-con-docs-kb"
+mkdir -p src test docs/kb
+cat > package.json <<'EOF'
+{ "name": "reservas", "version": "0.1.0", "private": true, "type": "module",
+  "scripts": { "test": "node --test" } }
+EOF
+cat > src/precio.js <<'EOF'
+export function precioConImpuesto(base) { return base * 1.07; }
+export function descuento(base, pct) { return base - pct; } // BUG: resta el pct como monto
+EOF
+cat > test/precio.test.js <<'EOF'
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { precioConImpuesto, descuento } from "../src/precio.js";
+test("F01 impuesto", () => assert.equal(Math.round(precioConImpuesto(100)), 107));
+test("F02 descuento porcentual", () => assert.equal(descuento(200, 10), 180));
+EOF
+cat > init.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")"
+node --test
+EOF
+chmod +x init.sh
+cat > CLAUDE.md <<'EOF'
+# CLAUDE.md — reservas
+## Quick Start
+- Verificación: `./init.sh` (node --test)
+## Reglas
+- WIP=1 · pass-gating: `passing` solo con verificación ejecutada.
+## Arranque de sesión
+1. leer claude-progress.md 2. leer feature_list.json 3. `./init.sh`
+EOF
+cat > feature_list.json <<'EOF'
+{ "features": [
+  { "id": "F01", "priority": 1, "title": "Precio con impuesto", "status": "passing",
+    "verification": "node --test --test-name-pattern=F01",
+    "evidence": { "cmd": "node --test --test-name-pattern=F01", "exit_code": 0, "at": "2026-01-05", "commit": "" } },
+  { "id": "F02", "priority": 2, "title": "Descuento porcentual", "status": "in_progress",
+    "verification": "node --test --test-name-pattern=F02",
+    "evidence": { "cmd": "", "exit_code": null, "at": "", "commit": "" } } ] }
+EOF
+{
+  echo "# Progreso — reservas"
+  echo "## Estado Verificado Actual"
+  echo "- Verificación: ./init.sh · Feature activa: F02"
+  echo "## Registro de Sesiones"
+  for n in 1 2 3 4 5 6 7; do
+    printf '### Sesión %s — 2026-01-0%s\n- Trabajo en precios.\n- Verificación: node --test\n' "$n" "$n"
+  done
+} > claude-progress.md
+cat > DECISIONS.md <<'EOF'
+# Registro de Decisiones — reservas
+## 2026-01-01: Instalación del arnés
+- Decisión: adoptar el arnés.
+EOF
+cat > docs/kb/PROJECT.md <<'EOF'
+# Proyecto reservas
+Stack: Node 20, sin dependencias. Estado: en desarrollo.
+EOF
+cat > docs/kb/CONFIGURATIONS.md <<EOF
+## Stripe — configurado 2026-01-03
+**Estado:** Activo
+**Variables:** STRIPE_WEBHOOK_SECRET=$FAKE_WHSEC
+**Notas:** webhook en /api/stripe
+EOF
+cat > docs/kb/ERROR_LOG.md <<'EOF'
+## ERROR-001: test colgado
+**Síntoma:** node --test no termina
+**Causa raíz:** handle abierto de setInterval en src
+**Solución:** limpiar el intervalo en el teardown
+EOF
+cat > docs/kb/SESSIONS.md <<'EOF'
+## Sesión 2026-01-07
+- Duplicado del diario de claude-progress.md
+EOF
+commit "chore: arnés + docs/kb de project-kb"
+
 cd "$ROOT"
 echo "fixtures OK en $ROOT:"
-for d in node-pnpm-env-tests python-pytest-noreadme secret-in-history drizzle-mysql-readme-postgres; do
+for d in node-pnpm-env-tests python-pytest-noreadme secret-in-history drizzle-mysql-readme-postgres arneseado-con-docs-kb; do
   printf '  %-32s %s commits\n' "$d" "$(git -C "$d" rev-list --count HEAD)"
 done

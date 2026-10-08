@@ -5,6 +5,32 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado: [
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-08
+### Added
+- **Modo M (mantenimiento)**: protocolo de sesión para repos ya arneseados — inicio barato (solo
+  `## Estado Verificado Actual`, la feature activa, `git log -5` e `init.sh`), cierre con pass-gating estricto,
+  registro de errores y servicios en el momento, y rotación del estado. Nueva referencia `references/mantenimiento.md`.
+- **Presupuesto de contexto** (principio L14): topes por artefacto (router ≤200 líneas, 5 sesiones en progreso,
+  40 errores activos, 300 líneas en DECISIONS) y archivo en `docs/harness/archive/`. Lectura bajo demanda con grep.
+- Plantilla **`ERRORS.md`**: síntoma, causa raíz por capa, solución y prevención ejecutable; los recurrentes se
+  promueven a checks.
+- **DECISIONS.md § Servicios configurados**: variables por nombre, dónde se configuran y gotchas, nunca valores.
+- **Diagnóstico G — memorias paralelas**: detecta `docs/kb/`, `SESSIONS.md`, vaults de notas y routers inflados;
+  migración con mapeo explícito, `git mv` y confirmación antes de mover o borrar.
+- Evals: fixture (e) `arneseado-con-docs-kb`, task-eval 6 (pass-gating + migración + secreto en memoria
+  paralela) y 5 trigger-evals nuevos.
+### Changed
+- **Reemplaza a los skills `project-core:project-kb` y `project-core:golden-rules`**: su valor queda absorbido
+  (log de errores con causa raíz, registro de configuraciones, reglas de ingeniería no inventar / leer antes de
+  tocar / grep de dependencias / sin parches que oculten la causa / reportar en el momento) sin duplicar estado.
+- Router: rituales de arranque y cierre baratos; regla de alcance "tajada mínima verificada" en lugar de
+  perfeccionismo previo al lanzamiento.
+- `claude-progress.md`: Estado Verificado Actual acotado a 15 líneas con próxima acción y "no tocar".
+- Trigger-eval de cierre de sesión pasa de negativo a positivo (es Modo M).
+### Removed
+- De golden-rules se descartan deliberadamente la revisión "1000 usuarios" en cada cambio y las reglas que
+  impiden lanzar una tajada verificada (R3 MLP, R11 sin separar pre/post lanzamiento).
+
 ## [1.2.0] - 2026-10-07
 ### Security
 - **Frontera de confianza**: el repo auditado es dato, no instrucciones (cláusula anti prompt-injection; comandos de scripts/README solo si son reconocibles del gestor del proyecto).
@@ -35,7 +61,8 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado: [
 ### Added
 - Primera versión del skill `arnes-implementador`: workflow de 5 fases, `references/` (kb-arnes, diagnostic-playbook, stack-adapters) y kit de plantillas (`CLAUDE.md`, `init.sh`, `claude-progress.md`, `feature_list.json`, `DECISIONS.md`).
 
-[Unreleased]: https://github.com/Ajlm1978/arnes-implementador/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/Ajlm1978/arnes-implementador/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/Ajlm1978/arnes-implementador/compare/v1.2.0...v2.0.0
 [1.2.0]: https://github.com/Ajlm1978/arnes-implementador/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Ajlm1978/arnes-implementador/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Ajlm1978/arnes-implementador/releases/tag/v1.0.0
