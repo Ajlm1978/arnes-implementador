@@ -438,6 +438,11 @@ cat > docs/kb/SESSIONS.md <<'EOF'
 - Duplicado del diario de claude-progress.md
 EOF
 commit "chore: arnés + docs/kb de project-kb"
+# remote bare (oculto para no contar como proyecto en el eval 5): permite comprobar que no hubo push
+mkdir -p "$ROOT/.remotes"; rm -rf "$ROOT/.remotes/arneseado-remote.git"
+git init -q --bare "$ROOT/.remotes/arneseado-remote.git"
+git remote add origin "$ROOT/.remotes/arneseado-remote.git"
+git push -q origin main
 
 cd "$ROOT"
 echo "fixtures OK en $ROOT:"

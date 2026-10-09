@@ -6,6 +6,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado: [
 ## [Unreleased]
 
 ## [2.0.0] - 2026-10-08
+### Security
+- Playbook §F.1: el comando de clasificación imprimía 4 caracteres del secreto (y el valor completo si era
+  corto), violando "ni parcial". Ahora solo cuenta por tipo (`uniq -c`), sin un carácter del valor.
+- Modo M: un patrón de secreto en archivos leídos o tocados es [ALTA] y activa el SOP §F; el cierre exige
+  `git diff --cached` sin secretos. Commits nunca en la rama por defecto.
 ### Added
 - **Modo M (mantenimiento)**: protocolo de sesión para repos ya arneseados — inicio barato (solo
   `## Estado Verificado Actual`, la feature activa, `git log -5` e `init.sh`), cierre con pass-gating estricto,
@@ -20,6 +25,19 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado: [
 - Evals: fixture (e) `arneseado-con-docs-kb`, task-eval 6 (pass-gating + migración + secreto en memoria
   paralela) y 5 trigger-evals nuevos.
 ### Changed
+- **Base vs feature activa**: un test en rojo de la feature `in_progress` no es fallo de base ni "arnés roto";
+  arnés roto = `init.sh` no ejecuta, placeholders o comandos inexistentes. Evita re-auditorías falsas.
+- Modo M cubre repos con `AGENTS.md` + `PROGRESS.md`; crea `ERRORS.md`/`DECISIONS.md` si faltan; aplica la
+  lectura mínima aunque el router del repo pida leer todo; `evidence` solo guarda runs en exit 0.
+- Rotación: se ejecuta sin permiso y se informa; nunca archiva errores abiertos/recurrentes ni decisiones
+  vigentes; destinos por artefacto; la migración de memorias paralelas sí pide confirmación y no deja punteros.
+- Fallback de feature activa = `not_started` de mayor prioridad (nunca `blocked`); se restaura la regla WIP
+  "la siguiente solo cuando la actual esté passing".
+- De golden-rules se recuperan R7 (reportar errores también en código ajeno), la rama "no sé la solución →
+  dilo e investiga", el formato de reporte de violación, el flujo UI en la DoD y la nota de escala en
+  decisiones de arquitectura; checklist de cierre completo de project-kb.
+- Fase 1 contempla proyectos nuevos (git init con confirmación). Plantillas sin `‹…›` en los rituales.
+- Eval 6 endurecido (12 aserciones: Estado Verificado, ERRORS.md, rama main intacta, remote bare sin push).
 - **Reemplaza a los skills `project-core:project-kb` y `project-core:golden-rules`**: su valor queda absorbido
   (log de errores con causa raíz, registro de configuraciones, reglas de ingeniería no inventar / leer antes de
   tocar / grep de dependencias / sin parches que oculten la causa / reportar en el momento) sin duplicar estado.

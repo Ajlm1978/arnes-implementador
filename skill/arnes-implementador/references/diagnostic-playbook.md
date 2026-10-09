@@ -59,7 +59,7 @@ Los comandos deben devolver RUTAS y COMMITS, nunca el secreto. Usa una sola rege
 PAT='(sk_live_|sk_test_|whsec_|github_pat_|ghp_|AKIA[0-9A-Z]{16}|xoxb-|BEGIN [A-Z ]*PRIVATE KEY|mysql://[^:]+:[^@]+@|postgres(ql)?://[^:]+:[^@]+@)'
 git grep -lIE "$PAT" -- . ':!*.example'                # árbol: solo rutas
 git log --all --oneline -G"$PAT"                       # historial: solo commits
-git grep -hoIE '(sk_live|sk_test|whsec|github_pat|ghp)_[A-Za-z0-9]{4}' | sort -u   # tipo + 4 chars, para clasificar
+git grep -hoIE '(sk_live|sk_test|whsec|github_pat|ghp)_' | sort | uniq -c        # solo tipo y cantidad, ni un carácter del valor
 ```
 Segunda pasada opcional (ruidosa): `git grep -lIiE 'api[_-]?key|secret|token|password' -- . ':!*.example'`.
 Si hay `gitleaks`: `gitleaks detect --no-banner --redact`. No uses `-p` ni `cat` sobre los hallazgos.

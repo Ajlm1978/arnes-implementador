@@ -66,7 +66,7 @@ Funciona **aunque no uses la palabra "arnés"**.
 
 ```
 skill/arnes-implementador/      # Skill fuente
-├── SKILL.md                    # El workflow de 5 fases
+├── SKILL.md                    # Modo I (5 fases) y Modo M (mantenimiento)
 ├── references/
 │   ├── kb-arnes.md             # Principios de harness engineering (la teoría)
 │   ├── diagnostic-playbook.md  # Checklist de auditoría paso a paso (A-G)
@@ -105,4 +105,4 @@ MIT — ver [LICENSE](LICENSE).
 
 ## English TL;DR
 
-**arnes-implementador** is a Claude Skill that installs professional *harness engineering* into your repos so AI agents work reliably across sessions. It has two modes: install and per-session maintenance (cheap session start, strict pass-gating on close, root-cause error log, state rotation — replacing the separate project-kb and golden-rules skills). It's **not a template generator**: it first **audits your repo like a senior engineer** — detects the real stack, runs a cold-start test, reviews the 5 harness subsystems, and hunts for gaps (missing/false verification, environment-coupled tests, startup crashes from missing env vars, no cross-session state, unbounded scope). It reports findings and recommendations **before** writing anything, then builds and installs an adapted harness (`CLAUDE.md`/`AGENTS.md` router, `init.sh` baseline verification, `claude-progress.md`, `feature_list.json`, `DECISIONS.md`) via a branch + PR. Install the packaged skill from [`dist/`](dist/arnes-implementador.skill) or copy [`skill/`](skill/). MIT licensed.
+**arnes-implementador** is a Claude Skill that installs professional *harness engineering* into your repos so AI agents work reliably across sessions. It has two modes: install and per-session maintenance (cheap session start, strict pass-gating on close, root-cause error log, state rotation — replacing the separate project-kb and golden-rules skills). It's **not a template generator**: it first **audits your repo like a senior engineer** — detects the real stack, runs a cold-start test, reviews the 5 harness subsystems, and hunts for gaps (missing/false verification, environment-coupled tests, startup crashes from missing env vars, no cross-session state, unbounded scope). It reports findings and recommendations **before** writing anything, then builds and installs an adapted harness (`CLAUDE.md`/`AGENTS.md` router, `init.sh` baseline verification, `claude-progress.md`, `feature_list.json`, `DECISIONS.md`, `ERRORS.md`) via a branch + PR. Install the packaged skill from [`dist/`](dist/arnes-implementador.skill) or copy [`skill/`](skill/). MIT licensed.

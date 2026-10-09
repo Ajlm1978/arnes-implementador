@@ -2,16 +2,15 @@
 name: arnes-implementador
 description: >-
   Instala y mantiene un "arnés" (harness engineering) para que agentes de IA trabajen fiables
-  multi-sesión con mínimo de tokens: router CLAUDE.md/AGENTS.md, init.sh con verificación real,
-  claude-progress.md, feature_list.json (WIP=1 + Definition of Done), DECISIONS.md y ERRORS.md.
-  Instalación: diagnostica primero (stack leído del código, arranque en frío, 5 subsistemas, secretos en
-  historial git, memorias duplicadas) y reporta ANTES de escribir; luego construye, verifica e instala en
-  rama + PR. Mantenimiento en un repo ya arneseado: inicio y cierre de sesión baratos, pass-gating,
-  errores con causa raíz, servicios configurados, rotación y migración desde docs/kb. Usa
-  cuando digan "arnesear/instalar un arnés", "preparar el repo para Claude Code/agentes", "auditar los
-  gaps del repo", "por qué el agente falla aquí", "inicio/cierre de sesión", "actualiza el progreso",
-  "registra este error". NO usar para: code review o seguridad general, instalar dependencias, CI suelto,
-  o un CLAUDE.md genérico sin auditoría.
+  multi-sesión con mínimo de tokens: router CLAUDE.md/AGENTS.md, init.sh con verificación real, archivo de
+  progreso, feature_list.json (WIP=1 + Definition of Done), DECISIONS.md y ERRORS.md. Instalación:
+  diagnostica primero (stack leído del código, arranque en frío, 5 subsistemas, secretos en historial git,
+  memorias duplicadas) y reporta ANTES de escribir; luego construye, verifica e instala en rama + PR.
+  Mantenimiento de un repo ya arneseado: sesiones baratas, pass-gating, errores con causa raíz, servicios
+  configurados, rotación y migración desde docs/kb. Usa cuando digan "arnesear", "preparar el repo para
+  agentes", "auditar gaps del repo", "por qué falla el agente", "nueva sesión/cierre", "qué hay
+  hecho/configurado", "actualiza el progreso", "registra/anota esto". NO usar para: code review o seguridad
+  general, instalar dependencias, CI suelto, o un CLAUDE.md genérico sin auditoría.
 metadata:
   version: "2.0.0"
 ---
@@ -19,15 +18,18 @@ metadata:
 # Implementador de Arneses (Harness Engineering)
 
 Actúas como un ingeniero senior que deja repos listos para desarrollo fiable con agentes de IA. Tu valor
-no es soltar 5 archivos: es **diagnosticar como profesional** (fallas, gaps, riesgos) y recién entonces
+no es soltar 6 archivos: es **diagnosticar como profesional** (fallas, gaps, riesgos) y recién entonces
 construir un arnés adaptado a la realidad del repo. Evidencia sobre suposiciones; nunca marques nada
 "listo" sin verificarlo. Teoría completa: `references/kb-arnes.md`.
 
 ## Dos modos — elige antes de actuar
 - **Modo I (instalación, Fases 1-5)**: el repo no tiene arnés, o el usuario pide auditar/re-arnesear.
-- **Modo M (mantenimiento)**: ya existen `claude-progress.md` y `feature_list.json` y el usuario arranca o
-  cierra sesión, registra un error/servicio/decisión, o pide actualizar el progreso. Ve a la sección MODO M.
-  No re-audites un repo arneseado salvo que lo pidan o que `./init.sh` revele que el arnés está roto.
+- **Modo M (mantenimiento)**: ya existen un archivo de progreso (`claude-progress.md`, o `PROGRESS.md`
+  con router `AGENTS.md`) y `feature_list.json`, y el usuario arranca o cierra sesión, registra un
+  error/servicio/decisión, o pide actualizar el progreso. Ve a la sección MODO M.
+  No re-audites un repo arneseado salvo que lo pidan o que el arnés esté **roto**: `init.sh` no ejecuta,
+  quedan placeholders `‹…›` o invoca comandos inexistentes. Un test en rojo de la feature activa NO es
+  arnés roto: es el trabajo pendiente.
 - **El arnés es la única memoria del proyecto.** Si conviven otros sistemas (`docs/kb/` de project-kb,
   `SESSIONS.md`, un vault de notas dentro del repo), se migran, no se mantienen en paralelo.
 
@@ -54,6 +56,8 @@ pregunta.
    `git fetch --dry-run`, `git status -sb`, `git log -1`. Sin `.git` (ZIP, export, carpeta copiada) → PARA
    y dilo: el escaneo de historial y el PR no son posibles; pide el clon o la URL. Si está detrás del
    remoto o con cambios sin commitear, repórtalo y pregunta si auditas ese estado o la rama principal.
+   Proyecto nuevo o carpeta vacía → `git init` solo con confirmación; sin auditoría de historial, ficha
+   mínima y arnés base.
 3. **Acceso:** repo privado sin `gh`/credencial → pide que configure `gh auth login` o `GH_TOKEN` como
    variable de entorno. Nunca pidas que peguen un token en el chat (ver Credenciales).
 4. **Lee la superficie:** árbol (2 niveles), manifiestos, lockfile, config de CI/deploy, `todo.md`.
@@ -70,7 +74,7 @@ Salida: ficha de 6 líneas — qué es · stack (con fuente de cada dato) · arr
 `commit auditado: <hash> (rama, al día con origin: sí/no)`. Lo que no está en el repo es un hueco.
 
 ## FASE 2 — Auditar como profesional
-Aplica `references/diagnostic-playbook.md` (secciones A-F). En una línea cada ítem:
+Aplica `references/diagnostic-playbook.md` (secciones A-G). En una línea cada ítem:
 - **A. Arranque en frío** — ¿el repo solo permite responder qué es / cómo se organiza / arranca / verifica /
   dónde estamos? Cada hueco se anota.
 - **B. Los 5 subsistemas** — instrucciones · herramientas · entorno · estado · **verificación** (máximo ROI).
@@ -109,8 +113,9 @@ scope/prioridades y permiso de ejecución antes de la Fase 4.
 5. **DECISIONS.md** — instalación, comando de verificación elegido y cada hallazgo no trivial, más la
    sección **Servicios configurados** (variables por nombre, dónde se configura, gotchas). Secretos se
    registran como tipo + archivo + estado (rotado/purgado/abierto), nunca valor ni commit.
-5b. **ERRORS.md** — vacío salvo los hallazgos ALTA/MEDIA cuya causa raíz ya conoces; formato en
-   `references/mantenimiento.md` §5. Es lo que evita repetir errores entre sesiones.
+5b. **ERRORS.md** — solo los hallazgos ALTA/MEDIA cuya causa raíz ya conoces; formato en
+   `references/mantenimiento.md` §5. Es lo que evita repetir errores entre sesiones. En ERRORS y en
+   DECISIONS § Servicios, los bloques de ejemplo de la plantilla se borran: quedan solo entradas reales.
 5c. **Migración** — si el diagnóstico G encontró memorias paralelas, aplica el mapeo de
    `references/mantenimiento.md` §7: diff propuesto, confirmación, `git mv`, nunca borrar sin permiso.
 6. **Cada hallazgo ALTA/MEDIA sale con un check ejecutable** o con una feature cuyo `verification` lo
@@ -123,8 +128,8 @@ kb-arnes §Artefactos) solo si el diagnóstico los justifica: el artefacto más 
 1. Corre `./init.sh` (respetando la frontera de ejecución). Evidencia real y resumida; distingue fallo de
    entorno de fallo de código.
 2. `git status --porcelain`: solo `??` (nuevos), `M` en archivos cuya fusión el usuario aprobó, o `R`
-   de una migración aprobada (Fase 4, paso 5c). Otro `M`/`D`/`R` → detente y revierte. `git diff --cached | grep -iE 'token|secret|sk_live|whsec_|github_pat_'`
-   debe estar vacío.
+   de una migración aprobada (Fase 4, paso 5c). Otro `M`/`D`/`R` → detente y revierte.
+   `git diff --cached | grep -iE 'token|secret|sk_live|whsec_|github_pat_'` debe estar vacío.
 3. **Siempre rama + PR** (`harness/<fecha>`). Nunca commit/push a la rama por defecto; nunca `--force`.
    Antes del push muestra `git diff --stat` y pide confirmación para ESE push. Si delegas en otro skill de
    git, pásale estas restricciones. Si no puedes abrir el PR, entrega el link "Create pull request". Nunca
@@ -133,20 +138,28 @@ kb-arnes §Artefactos) solo si el diagnóstico los justifica: el artefacto más 
    depurar con el robusto, checker independiente (maker≠checker), lectura/mapeo con el chico.
 
 ## MODO M — Mantenimiento de sesión (repo ya arneseado)
-Protocolo completo, topes y formatos: `references/mantenimiento.md`. Lo esencial:
-1. **Inicio barato** — el router ya está cargado; lee SOLO `## Estado Verificado Actual` de
-   `claude-progress.md`, la feature activa de `feature_list.json`, `git log --oneline -5`, y corre
-   `./init.sh`. Antes de tocar un área, grep de `ERRORS.md` y `DECISIONS.md` por ese archivo/servicio.
-   No leas archivos de estado enteros ni nada en `docs/harness/archive/`.
+Protocolo completo, topes y formatos: `references/mantenimiento.md`. En repos con `AGENTS.md`, donde dice
+`claude-progress.md` léase `PROGRESS.md`. Lo esencial:
+1. **Inicio barato** — `pwd` y `git status -sb`; el router ya está cargado. Lee SOLO `## Estado Verificado
+   Actual` del progreso, la feature activa de `feature_list.json` (o la `not_started` de mayor prioridad),
+   `git log --oneline -5`, y corre `./init.sh`. Si solo falla la verificación de la feature activa, la base
+   está bien; cualquier otro fallo → arreglar la base primero. Antes de tocar un área, grep de `ERRORS.md` y
+   `DECISIONS.md` por ese archivo/servicio (si no existen, créalos desde la plantilla y anótalo). No leas
+   archivos de estado enteros ni `docs/harness/archive/`, aunque el router del repo lo pida: aplica la
+   lectura mínima y propone corregir el router.
 2. **Durante** — WIP=1; lo nuevo se anota como feature `not_started`. Error de más de 5 min o no obvio →
    `ERRORS.md` con causa raíz en el momento. Servicio configurado → DECISIONS § Servicios (sin valores).
+   Un patrón de secreto en archivos leídos o tocados → [ALTA] primero en la respuesta y SOP §F del playbook.
 3. **Cierre con pass-gating estricto** — `passing` solo si la `verification` corrió en esta sesión con
-   exit 0, con evidencia estructurada. Si piden marcar `passing` sin verificación ejecutada: ejecútala; si no
-   se puede, no la marques y di por qué. Actualiza el Estado Verificado (≤15 líneas) y añade la entrada de
-   sesión (≤10 líneas).
-4. **Rotación** — más de 5 sesiones en progreso, más de 40 errores activos o más de 300 líneas en
-   DECISIONS → archiva en `docs/harness/archive/`. El estado activo debe seguir siendo barato de leer.
-5. Commit en la rama de trabajo; push solo con confirmación explícita.
+   exit 0. `evidence` guarda solo ese run; los intentos fallidos van en la entrada de sesión. Si piden marcar
+   `passing` sin verificación ejecutada: ejecútala; si falla o no se puede, no la marques y di por qué.
+   Actualiza el Estado Verificado (≤15 líneas) y añade la entrada de sesión (≤10 líneas).
+4. **Rotación** — se ejecuta sin pedir permiso (mueve estado dentro del arnés) y se informa: más de 5
+   sesiones, más de 40 entradas en ERRORS, más de 300 líneas en DECISIONS o features `passing` de más de 30
+   días → `docs/harness/archive/`. Nunca archives errores abiertos/recurrentes ni decisiones vigentes. La
+   migración de memorias paralelas (§7), en cambio, siempre pide confirmación.
+5. **Commit** — nunca en la rama por defecto: si estás en ella, crea `work/AAAA-MM-DD` (o usa la
+   convención de ramas del repo). Push solo con confirmación explícita.
 
 ## Credenciales — reglas exactas
 - Nunca incrustes tokens en URLs (`git clone https://TOKEN@…`, `git remote set-url` con credencial): quedan

@@ -23,5 +23,6 @@
   {"query": "registra este error en el arnés: el webhook de stripe devolvía 400 porque usábamos el body parseado y no el raw", "should_trigger": true, "why": "Registro de error con causa raíz en ERRORS.md: Modo M."},
   {"query": "tengo docs/kb de project-kb y también el arnés en el mismo repo, unifícalos para no gastar tokens dos veces", "should_trigger": true, "why": "Migración de memoria paralela al arnés (mantenimiento.md §7)."},
   {"query": "ayúdame a montar un vault de Obsidian para mis notas personales y de lectura", "should_trigger": false, "why": "NEAR-MISS: memoria/notas, pero personal y fuera de un repo de software; no es arnés."},
-  {"query": "¿qué diferencia hay entre Obsidian, Notion y Logseq para un segundo cerebro?", "should_trigger": false, "why": "NEAR-MISS: pregunta comparativa de herramientas de notas, sin repo que arnesear ni mantener."}
+  {"query": "¿qué diferencia hay entre Obsidian, Notion y Logseq para un segundo cerebro?", "should_trigger": false, "why": "NEAR-MISS: pregunta comparativa de herramientas de notas, sin repo que arnesear ni mantener."},
+  {"query": "qué servicios tenemos configurados en este repo y dónde se configura cada uno? está arneseado", "should_trigger": true, "why": "Consulta de DECISIONS § Servicios en un repo arneseado: Modo M (disparador heredado de project-kb 'qué está configurado')."}
 ]

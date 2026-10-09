@@ -4,10 +4,12 @@
 > secretos. Evidencia = resumen ("tsc: 0 errores; vitest: 42/42"), no volcado.
 
 > Cuándo: error que tomó más de 5 min o cuya causa no era obvia, registrado en el momento.
-> Cómo se usa: antes de tocar un área, `grep -n -i '‹archivo|servicio|síntoma›' ERRORS.md`. No se lee entero.
+> Cómo se usa: antes de tocar un área, `grep -n -i "<archivo o servicio>" ERRORS.md`. No se lee entero.
 > Nunca un síntoma sin causa raíz: si no se conoce, estado `abierto` + hipótesis en curso.
 > Recurrente → su prevención se promueve a check en `init.sh` o CI.
-> Más de 40 entradas activas → archivar las resueltas hace más de 90 días en `docs/harness/archive/`.
+> Más de 40 entradas (cualquier estado) → archivar las `resuelto` de más de 90 días en
+> `docs/harness/archive/errors-AAAA.md`. Nunca archivar `abierto` ni `recurrente`.
+> Al instalar, BORRA el bloque de ejemplo de abajo: quedan solo entradas reales.
 
 ## ERR-001 — ‹título corto› · ‹fecha› · estado: resuelto|abierto|recurrente
 - Síntoma: ‹lo que se veía (mensaje clave, no volcado)›

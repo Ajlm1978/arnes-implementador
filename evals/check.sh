@@ -44,7 +44,7 @@ if n > 1024:
 print(f"  [ok]   description = {n} chars (<= 1024)")
 if n > 1000:
     print(f"  [warn] description a {1024-n} chars del límite")
-extra = [k for k in re.findall(r"^([A-Za-z_-]+):", fm, re.M) if k not in ("name","description","license","allowed-tools","metadata")]
+extra = [k for k in re.findall(r"^([A-Za-z_-]+):", fm, re.M) if k not in ("name","description","license","allowed-tools","metadata","compatibility")]
 if extra:
     print(f"  [warn] claves de frontmatter no estándar: {extra}")
 PY
@@ -89,6 +89,10 @@ if bash "$REPO/evals/fixtures/make-fixtures.sh" "$FX_ROOT" > /dev/null; then
   E="$FX_ROOT/arneseado-con-docs-kb"
   [ -f "$E/claude-progress.md" ] && [ -f "$E/feature_list.json" ] && [ -d "$E/docs/kb" ] \
     && ok "(e) arnés + docs/kb paralelos presentes" || fail "(e) faltan artefactos del arnés o docs/kb"
+  R="$FX_ROOT/.remotes/arneseado-remote.git"
+  [ "$(git -C "$R" for-each-ref --format='%(refname)' | tr '\n' ' ')" = "refs/heads/main " ] && [ "$(git -C "$R" rev-parse main)" = "$(git -C "$E" rev-parse main)" ] \
+    && ok "(e) remote bare solo con main en el commit del fixture" || fail "(e) remote bare mal formado"
+  [ ! -f "$E/ERRORS.md" ] && ok "(e) sin ERRORS.md (el agente debe crearlo)" || fail "(e) ERRORS.md no debería existir"
   [ "$(grep -c '^### Sesión' "$E/claude-progress.md")" -gt 5 ] && ok "(e) más de 5 sesiones (rotación pendiente)" || fail "(e) debería tener más de 5 sesiones"
   grep -q 'whsec_' "$E/docs/kb/CONFIGURATIONS.md" && ok "(e) valor de secreto en CONFIGURATIONS.md" || fail "(e) falta el secreto falso en CONFIGURATIONS.md"
   if command -v node >/dev/null 2>&1; then
