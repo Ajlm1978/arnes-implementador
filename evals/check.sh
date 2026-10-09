@@ -44,7 +44,7 @@ if n > 1024:
 print(f"  [ok]   description = {n} chars (<= 1024)")
 if n > 1000:
     print(f"  [warn] description a {1024-n} chars del límite")
-extra = [k for k in re.findall(r"^([A-Za-z_-]+):", fm, re.M) if k not in ("name","description","license","allowed-tools","metadata")]
+extra = [k for k in re.findall(r"^([A-Za-z_-]+):", fm, re.M) if k not in ("name","description","license","allowed-tools","metadata","compatibility")]
 if extra:
     print(f"  [warn] claves de frontmatter no estándar: {extra}")
 PY
@@ -75,7 +75,7 @@ fi
 echo "== 5. Fixtures de evals se generan =="
 FX_ROOT="$(mktemp -d)/arnes-fixtures"
 if bash "$REPO/evals/fixtures/make-fixtures.sh" "$FX_ROOT" > /dev/null; then
-  for d in node-pnpm-env-tests python-pytest-noreadme secret-in-history drizzle-mysql-readme-postgres; do
+  for d in node-pnpm-env-tests python-pytest-noreadme secret-in-history drizzle-mysql-readme-postgres arneseado-con-docs-kb; do
     [ -d "$FX_ROOT/$d/.git" ] && ok "$d ($(git -C "$FX_ROOT/$d" rev-list --count HEAD) commits)" || fail "$d no se generó como repo git"
   done
   # Propiedades que las aserciones de evals.json dan por sentadas:
@@ -86,6 +86,21 @@ if bash "$REPO/evals/fixtures/make-fixtures.sh" "$FX_ROOT" > /dev/null; then
     && ok "(d) contradicción mysql/postgres presente" || fail "(d) contradicción mysql/postgres ausente"
   [ ! -f "$FX_ROOT/python-pytest-noreadme/README.md" ] && ok "(b) sin README" || fail "(b) README no debería existir"
   [ ! -f "$FX_ROOT/node-pnpm-env-tests/.env.example" ] && ok "(a) sin .env.example" || fail "(a) .env.example no debería existir"
+  E="$FX_ROOT/arneseado-con-docs-kb"
+  [ -f "$E/claude-progress.md" ] && [ -f "$E/feature_list.json" ] && [ -d "$E/docs/kb" ] \
+    && ok "(e) arnés + docs/kb paralelos presentes" || fail "(e) faltan artefactos del arnés o docs/kb"
+  R="$FX_ROOT/.remotes/arneseado-remote.git"
+  [ "$(git -C "$R" for-each-ref --format='%(refname)' | tr '\n' ' ')" = "refs/heads/main " ] && [ "$(git -C "$R" rev-parse main)" = "$(git -C "$E" rev-parse main)" ] \
+    && ok "(e) remote bare solo con main en el commit del fixture" || fail "(e) remote bare mal formado"
+  [ ! -f "$E/ERRORS.md" ] && ok "(e) sin ERRORS.md (el agente debe crearlo)" || fail "(e) ERRORS.md no debería existir"
+  [ "$(grep -c '^### Sesión' "$E/claude-progress.md")" -gt 5 ] && ok "(e) más de 5 sesiones (rotación pendiente)" || fail "(e) debería tener más de 5 sesiones"
+  grep -q 'whsec_' "$E/docs/kb/CONFIGURATIONS.md" && ok "(e) valor de secreto en CONFIGURATIONS.md" || fail "(e) falta el secreto falso en CONFIGURATIONS.md"
+  if command -v node >/dev/null 2>&1; then
+    (cd "$E" && node --test --test-name-pattern=F01 >/dev/null 2>&1) && ok "(e) F01 pasa" || fail "(e) F01 debería pasar"
+    (cd "$E" && node --test --test-name-pattern=F02 >/dev/null 2>&1) && fail "(e) F02 debería fallar" || ok "(e) F02 falla (pass-gating debe impedir marcarla)"
+  else
+    echo "  [skip] (e) node no disponible: no se comprueba F01/F02"
+  fi
   rm -rf "$(dirname "$FX_ROOT")"
 else
   fail "make-fixtures.sh falló"

@@ -59,7 +59,7 @@ Los comandos deben devolver RUTAS y COMMITS, nunca el secreto. Usa una sola rege
 PAT='(sk_live_|sk_test_|whsec_|github_pat_|ghp_|AKIA[0-9A-Z]{16}|xoxb-|BEGIN [A-Z ]*PRIVATE KEY|mysql://[^:]+:[^@]+@|postgres(ql)?://[^:]+:[^@]+@)'
 git grep -lIE "$PAT" -- . ':!*.example'                # árbol: solo rutas
 git log --all --oneline -G"$PAT"                       # historial: solo commits
-git grep -hoIE '(sk_live|sk_test|whsec|github_pat|ghp)_[A-Za-z0-9]{4}' | sort -u   # tipo + 4 chars, para clasificar
+git grep -hoIE '(sk_live|sk_test|whsec|github_pat|ghp)_' | sort | uniq -c        # solo tipo y cantidad, ni un carácter del valor
 ```
 Segunda pasada opcional (ruidosa): `git grep -lIiE 'api[_-]?key|secret|token|password' -- . ':!*.example'`.
 Si hay `gitleaks`: `gitleaks detect --no-banner --redact`. No uses `-p` ni `cat` sobre los hallazgos.
@@ -89,3 +89,19 @@ grep -rhoE 'process\.env\.[A-Z0-9_]+' --include='*.ts' --include='*.js' . | sed 
 Crea `.env.example` con TODAS las claves encontradas y placeholders (`KEY=` o `KEY=your-value-here`).
 Marca cuáles son obligatorias (las que un fail-fast exige al arrancar). Esto documenta el contrato de entorno
 y previene el crash "build pasa pero el proceso muere antes del healthcheck".
+
+## G. Memorias paralelas y coste de contexto
+Un repo con varios sistemas de memoria paga cada dato varias veces por sesión y acaba con fuentes que se
+contradicen. Detecta (solo listar, no leer contenidos enteros):
+```
+ls -d docs/kb docs/memory .obsidian 2>/dev/null
+git ls-files | grep -iE '(^|/)(SESSIONS|ARCHITECTURE|CONFIGURATIONS|ERROR_LOG|PROJECT)\.md$'
+wc -l CLAUDE.md AGENTS.md claude-progress.md DECISIONS.md 2>/dev/null
+grep -c '^### Sesión' claude-progress.md 2>/dev/null
+```
+- Dos o más archivos guardando estado, decisiones o errores → [MEDIA] duplicación; migrar con
+  `references/mantenimiento.md` §7.
+- Router de más de 200 líneas, progreso con más de 5 sesiones o DECISIONS de más de 300 líneas → [BAJA]
+  coste de contexto; aplicar topes y rotación (§1).
+- `.obsidian/` versionado con configuración personal (workspace, plugins) → [BAJA]; añadir a `.gitignore`.
+- Contradicción entre una memoria y el código → gana el código y es hallazgo, igual que con el README.
