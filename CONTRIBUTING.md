@@ -14,7 +14,8 @@ mejoras al playbook de diagnóstico, casos de fallo reales de campo, correccione
    ```
 4. Si el cambio es visible para el usuario, añade una línea en `CHANGELOG.md` bajo `[Unreleased]`.
 5. CI debe pasar: frontmatter válido, `SKILL.md` < 500 líneas, `bash -n` de plantillas, JSON válido,
-   `dist/` idéntico en contenido a `skill/`, `metadata.version` == última entrada del CHANGELOG.
+   `dist/` idéntico en contenido a `skill/`, `metadata.version` == última entrada del CHANGELOG ==
+   `.claude-plugin/plugin.json` `version`, y `claude plugin validate --strict` en verde.
 
 ## Reglas del skill
 - Español primero; TL;DR en inglés en el README.
@@ -25,6 +26,8 @@ mejoras al playbook de diagnóstico, casos de fallo reales de campo, correccione
 - Cada mejora que venga de un fallo real de campo: documenta el caso en el CHANGELOG (es cómo el skill aprende).
 
 ## Releases (mantenedores)
-1. Sube `metadata.version` en `SKILL.md`; mueve `[Unreleased]` a `## [X.Y.Z] - AAAA-MM-DD`.
+1. Sube `metadata.version` en `SKILL.md` **y** `version` en `.claude-plugin/plugin.json` (si solo subes
+   uno, CI falla; si ninguno, `claude plugin update` deja a los usuarios en la versión vieja); mueve
+   `[Unreleased]` a `## [X.Y.Z] - AAAA-MM-DD`.
 2. Reempaqueta `dist/`, PR, merge.
 3. `git tag vX.Y.Z && git push origin vX.Y.Z` → `release.yml` publica el `.skill` y `SHA256SUMS`.

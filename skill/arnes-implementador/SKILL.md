@@ -12,7 +12,7 @@ description: >-
   hecho/configurado", "actualiza el progreso", "registra/anota esto". NO usar para: code review o seguridad
   general, instalar dependencias, CI suelto, o un CLAUDE.md genérico sin auditoría.
 metadata:
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Implementador de Arneses (Harness Engineering)

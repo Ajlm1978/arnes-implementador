@@ -77,7 +77,7 @@ jobs:
           retention-days: 14
 
   changelog-and-version:
-    name: Versión coherente (README, CHANGELOG, frontmatter)
+    name: Versión coherente (frontmatter, CHANGELOG, plugin.json)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -97,6 +97,40 @@ jobs:
           PY
           )
           cl_ver=$(grep -m1 -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | tr -d '#[] ')
-          echo "frontmatter=$fm_ver changelog=$cl_ver"
+          pj_ver=$(python -I -c 'import json;print(json.load(open(".claude-plugin/plugin.json"))["version"])')
+          echo "frontmatter=$fm_ver changelog=$cl_ver plugin.json=$pj_ver"
           [ -n "$fm_ver" ] || { echo "Falta metadata.version en SKILL.md"; exit 1; }
           [ "$fm_ver" = "$cl_ver" ] || { echo "metadata.version ($fm_ver) != CHANGELOG ($cl_ver)"; exit 1; }
+          [ "$fm_ver" = "$pj_ver" ] || { echo "metadata.version ($fm_ver) != .claude-plugin/plugin.json ($pj_ver): sin bump, 'claude plugin update' deja a los usuarios en la versión vieja"; exit 1; }
+
+  plugin-validate:
+    name: claude plugin validate --strict (plugin + marketplace)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Instalar Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code@2.1.300   # pineado: la salida/CLI cambia entre versiones
+      - name: Validar marketplace.json y plugin.json
+        run: |
+          set -euo pipefail
+          claude plugin validate --strict .
+          claude plugin validate --strict .claude-plugin/plugin.json
+      - name: Instalación real desde marketplace local
+        run: |
+          set -euo pipefail
+          claude plugin marketplace add "$PWD"
+          claude plugin install arnes-implementador@ajlm1978
+          ver=$(python3 -c 'import json;print(json.load(open(".claude-plugin/plugin.json"))["version"])')
+          claude plugin list --json | python3 -c '
+          import json, sys
+          want = sys.argv[1]
+          p = [x for x in json.load(sys.stdin) if x.get("id") == "arnes-implementador@ajlm1978"]
+          assert p, "plugin no instalado"
+          assert p[0].get("enabled"), "plugin instalado pero no enabled"
+          assert p[0].get("version") == want, f"version instalada {p[0].get(chr(118)+chr(101)+chr(114)+chr(115)+chr(105)+chr(111)+chr(110))} != {want}"
+          print("instalado y enabled:", p[0]["id"], p[0]["version"])
+          ' "$ver"

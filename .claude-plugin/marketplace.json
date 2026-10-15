@@ -1,0 +1,17 @@
+{
+  "name": "ajlm1978",
+  "description": "Skills y plugins de Amilcar Leon para Claude Code y Cowork: harness engineering y herramientas para trabajar con agentes de IA de forma fiable.",
+  "owner": {
+    "name": "Amilcar Leon",
+    "url": "https://github.com/Ajlm1978"
+  },
+  "plugins": [
+    {
+      "name": "arnes-implementador",
+      "source": "./",
+      "description": "Audita tu repo como un ingeniero senior e instala un arnés (harness engineering) para que los agentes de IA trabajen fiables multi-sesión. Modo I (instalación) y Modo M (mantenimiento).",
+      "category": "development",
+      "tags": ["harness-engineering", "ai-agents", "repo-audit", "claude-code", "spanish"]
+    }
+  ]
+}
