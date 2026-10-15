@@ -40,11 +40,23 @@ Dos modos: **instalación** (5 fases, como lo haría un profesional) y **manteni
 
 ## Instalación
 
-**Opción A — un clic (Cowork y Claude Code).** Descarga [`dist/arnes-implementador.skill`](dist/arnes-implementador.skill)
+**Opción A — plugin desde el marketplace (Claude Code, recomendado).** Un comando dentro de una sesión
+(Claude Code 2.1.275 o superior):
+```
+/plugin install arnes-implementador --marketplace Ajlm1978/arnes-implementador
+```
+O en dos pasos desde la shell:
+```bash
+claude plugin marketplace add Ajlm1978/arnes-implementador
+claude plugin install arnes-implementador@ajlm1978
+```
+Actualizar: `claude plugin update arnes-implementador@ajlm1978`.
+
+**Opción B — un clic (Cowork y Claude Code).** Descarga [`dist/arnes-implementador.skill`](dist/arnes-implementador.skill)
 (o el asset del último [Release](https://github.com/Ajlm1978/arnes-implementador/releases), con `SHA256SUMS`
 para verificar) y usa **Save skill** en Claude, o súbelo desde la configuración de Skills.
 
-**Opción B — manual (Claude Code).** Copia la carpeta completa al directorio de skills personales y reinicia la sesión:
+**Opción C — manual (Claude Code).** Copia la carpeta completa al directorio de skills personales y reinicia la sesión:
 ```bash
 cp -r skill/arnes-implementador ~/.claude/skills/
 ```
@@ -65,6 +77,9 @@ Funciona **aunque no uses la palabra "arnés"**.
 ## Estructura del repo
 
 ```
+.claude-plugin/
+├── plugin.json                 # Manifiesto del plugin (apunta a skill/arnes-implementador)
+└── marketplace.json            # Marketplace "ajlm1978": instalación por nombre desde este repo
 skill/arnes-implementador/      # Skill fuente
 ├── SKILL.md                    # Modo I (5 fases) y Modo M (mantenimiento)
 ├── references/
@@ -105,4 +120,4 @@ MIT — ver [LICENSE](LICENSE).
 
 ## English TL;DR
 
-**arnes-implementador** is a Claude Skill that installs professional *harness engineering* into your repos so AI agents work reliably across sessions. It has two modes: install and per-session maintenance (cheap session start, strict pass-gating on close, root-cause error log, state rotation — replacing the separate project-kb and golden-rules skills). It's **not a template generator**: it first **audits your repo like a senior engineer** — detects the real stack, runs a cold-start test, reviews the 5 harness subsystems, and hunts for gaps (missing/false verification, environment-coupled tests, startup crashes from missing env vars, no cross-session state, unbounded scope). It reports findings and recommendations **before** writing anything, then builds and installs an adapted harness (`CLAUDE.md`/`AGENTS.md` router, `init.sh` baseline verification, `claude-progress.md`, `feature_list.json`, `DECISIONS.md`, `ERRORS.md`) via a branch + PR. Install the packaged skill from [`dist/`](dist/arnes-implementador.skill) or copy [`skill/`](skill/). MIT licensed.
+**arnes-implementador** is a Claude Skill that installs professional *harness engineering* into your repos so AI agents work reliably across sessions. It has two modes: install and per-session maintenance (cheap session start, strict pass-gating on close, root-cause error log, state rotation — replacing the separate project-kb and golden-rules skills). It's **not a template generator**: it first **audits your repo like a senior engineer** — detects the real stack, runs a cold-start test, reviews the 5 harness subsystems, and hunts for gaps (missing/false verification, environment-coupled tests, startup crashes from missing env vars, no cross-session state, unbounded scope). It reports findings and recommendations **before** writing anything, then builds and installs an adapted harness (`CLAUDE.md`/`AGENTS.md` router, `init.sh` baseline verification, `claude-progress.md`, `feature_list.json`, `DECISIONS.md`, `ERRORS.md`) via a branch + PR. Install it as a plugin with `/plugin install arnes-implementador --marketplace Ajlm1978/arnes-implementador`, or use the packaged skill from [`dist/`](dist/arnes-implementador.skill), or copy [`skill/`](skill/). MIT licensed.

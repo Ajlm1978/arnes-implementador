@@ -39,8 +39,10 @@ jobs:
           print((fm.get("metadata") or {}).get("version", ""))
           PY
           )
-          echo "tag=$tag_ver frontmatter=$fm_ver"
+          pj_ver=$(python -I -c 'import json;print(json.load(open(".claude-plugin/plugin.json"))["version"])')
+          echo "tag=$tag_ver frontmatter=$fm_ver plugin.json=$pj_ver"
           [ "$tag_ver" = "$fm_ver" ] || { echo "El tag v$tag_ver no coincide con metadata.version=$fm_ver"; exit 1; }
+          [ "$tag_ver" = "$pj_ver" ] || { echo "El tag v$tag_ver no coincide con .claude-plugin/plugin.json version=$pj_ver"; exit 1; }
 
       - name: Validar, reempaquetar y verificar contra dist/
         run: |
@@ -65,7 +67,7 @@ jobs:
           if [ ! -s release/NOTES.md ]; then
             echo "CHANGELOG.md no tiene sección ## [$ver]"; exit 1
           fi
-          printf '\n\n**Instalación:** descarga `arnes-implementador.skill` y usa **Save skill** en Claude, o copia `skill/arnes-implementador/` a `~/.claude/skills/`.\n\n**Verificación:** `sha256sum -c SHA256SUMS`\n' >> release/NOTES.md
+          printf '\n\n**Instalación (Claude Code):** `/plugin install arnes-implementador --marketplace Ajlm1978/arnes-implementador` · **o** descarga `arnes-implementador.skill` y usa **Save skill** en Claude, o copia `skill/arnes-implementador/` a `~/.claude/skills/`.\n\n**Verificación:** `sha256sum -c SHA256SUMS`\n' >> release/NOTES.md
 
       - name: Crear GitHub Release y adjuntar assets
         uses: softprops/action-gh-release@v2

@@ -124,7 +124,35 @@ else
   echo "  [skip] evals/evals.json no existe todavía"
 fi
 
-echo "== 7. Sin secretos reales en el repo del skill =="
+echo "== 7. Plugin de Claude Code coherente con el skill =="
+PJ="$REPO/.claude-plugin/plugin.json"; MP="$REPO/.claude-plugin/marketplace.json"
+if [ -f "$PJ" ] && [ -f "$MP" ]; then
+  python3 -I - "$PJ" "$MP" "$SKILL_DIR/SKILL.md" <<'PY' || FAIL=1
+import json, re, sys
+pj = json.load(open(sys.argv[1], encoding="utf-8"))
+mp = json.load(open(sys.argv[2], encoding="utf-8"))
+t = open(sys.argv[3], encoding="utf-8").read()
+fm = re.match(r"^---\n(.*?)\n---\n", t, re.S).group(1)
+m = re.search(r'^\s+version:\s*"?([0-9]+\.[0-9]+\.[0-9]+)"?\s*$', fm, re.M)
+sv = m.group(1) if m else ""
+ok = True
+def chk(cond, msg):
+    global ok
+    print(("  [ok]   " if cond else "  [FAIL] ") + msg); ok = ok and cond
+chk(pj.get("name") == "arnes-implementador", "plugin.json name = arnes-implementador")
+chk(pj.get("version") == sv and sv, f"plugin.json version ({pj.get('version')}) == metadata.version ({sv})")
+chk("./skill/arnes-implementador" in pj.get("skills", []), "plugin.json skills apunta a ./skill/arnes-implementador")
+names = [p.get("name") for p in mp.get("plugins", [])]
+chk("arnes-implementador" in names, "marketplace.json lista arnes-implementador")
+chk(all(p.get("source") == "./" for p in mp["plugins"] if p.get("name") == "arnes-implementador"), "marketplace entry source = ./")
+chk(mp.get("name") == "ajlm1978", "marketplace name = ajlm1978 (inmutable una vez publicado)")
+sys.exit(0 if ok else 1)
+PY
+else
+  fail "faltan .claude-plugin/plugin.json o marketplace.json"
+fi
+
+echo "== 8. Sin secretos reales en el repo del skill =="
 if git -C "$REPO" grep -nE '(sk_live|whsec|github_pat|ghp)_[A-Za-z0-9]{8,}|AKIA[0-9A-Z]{16}' -- . ':!evals/fixtures/*' ':!evals/evals.json' ':!references/*' >/dev/null 2>&1; then
   fail "patrón de secreto fuera de fixtures/references"; else ok "ningún patrón de secreto fuera de fixtures"; fi
 

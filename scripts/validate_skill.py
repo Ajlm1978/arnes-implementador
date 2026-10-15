@@ -139,9 +139,40 @@ def validate(skill_path: Path) -> dict:
         if not SEMVER_RE.match(version):
             fail(f"metadata.version '{version}' no es semver X.Y.Z")
 
+    check_plugin_manifest(skill_path, name, version)
+
     print(f"OK: skill '{name}' válido (description={len(desc)} chars, SKILL.md={n_lines} líneas"
           + (f", version={version}" if version else "") + ")")
     return {"name": name, "version": version}
+
+
+def check_plugin_manifest(skill_path: Path, name: str, version: str | None) -> None:
+    """Si el repo expone el skill como plugin de Claude Code (.claude-plugin/plugin.json en la raíz
+    del repo), su version debe ser idéntica a metadata.version: si no se bumpea, `claude plugin update`
+    informa "ya estás en la última" y los usuarios se quedan con la versión vieja."""
+    import json
+    repo_root = skill_path.resolve().parent.parent
+    manifest = repo_root / ".claude-plugin" / "plugin.json"
+    if not manifest.is_file():
+        return
+    try:
+        pj = json.loads(manifest.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        fail(f"{manifest} no es JSON válido: {e}")
+    if pj.get("name") != name:
+        fail(f"plugin.json name '{pj.get('name')}' != skill name '{name}'")
+    pv = str(pj.get("version", ""))
+    if not pv:
+        fail(f"{manifest} sin 'version' (debe igualar metadata.version={version})")
+    if version and pv != version:
+        fail(f"plugin.json version '{pv}' != metadata.version '{version}' — bumpea ambos")
+    skills = pj.get("skills", [])
+    if isinstance(skills, str):
+        skills = [skills]
+    rel = "./" + skill_path.resolve().relative_to(repo_root).as_posix()
+    if rel not in skills and rel + "/" not in skills:
+        fail(f"plugin.json 'skills' no apunta a {rel}: {skills}")
+    print(f"OK: .claude-plugin/plugin.json coherente (version={pv}, skills={skills})")
 
 
 def collect(skill_path: Path) -> list[tuple[str, Path]]:

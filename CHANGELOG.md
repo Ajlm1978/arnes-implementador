@@ -5,6 +5,24 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado: [
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-15
+Lección de campo: el repo era público desde v1.2.0 pero no instalable por nombre — sin `plugin.json` ni
+`marketplace.json` no existe para `/plugin install`, para los directorios que crawlean marketplaces ni para el
+marketplace comunitario de Anthropic (que exige un plugin validable). Público ≠ visible.
+### Added
+- **Plugin de Claude Code**: `.claude-plugin/plugin.json` (manifiesto; `skills` apunta a
+  `skill/arnes-implementador`, sin mover la fuente) y `.claude-plugin/marketplace.json` (marketplace
+  `ajlm1978` con este repo como única entrada). Instalación en un paso:
+  `/plugin install arnes-implementador --marketplace Ajlm1978/arnes-implementador`. Verificado con
+  `claude plugin validate --strict` e instalación real desde marketplace local.
+- Check de coherencia `plugin.json.version == metadata.version` en `scripts/validate_skill.py`,
+  `evals/check.sh`, el job `changelog-and-version` de CI y el gate de tag en `release.yml`: si se olvida el
+  bump del plugin, `claude plugin update` les diría a los usuarios "ya estás en la última" y se quedarían
+  con la versión vieja.
+- CI: job `plugin-validate` que corre `claude plugin validate --strict` sobre el repo.
+### Changed
+- README: instalación por marketplace como Opción A; `.skill` y copia manual pasan a B y C.
+
 ## [2.0.0] - 2026-10-08
 ### Security
 - Playbook §F.1: el comando de clasificación imprimía 4 caracteres del secreto (y el valor completo si era

@@ -1,0 +1,23 @@
+{
+  "name": "arnes-implementador",
+  "displayName": "Arnés Implementador",
+  "version": "2.1.0",
+  "description": "Audita tu repo como un ingeniero senior e instala un arnés (harness engineering) para que los agentes de IA trabajen fiables multi-sesión: router CLAUDE.md/AGENTS.md, init.sh con verificación real, progreso, feature list con WIP=1, DECISIONS.md y ERRORS.md. Modo I (instalación) y Modo M (mantenimiento barato por sesión).",
+  "author": {
+    "name": "Amilcar Leon",
+    "url": "https://github.com/Ajlm1978"
+  },
+  "homepage": "https://github.com/Ajlm1978/arnes-implementador",
+  "repository": "https://github.com/Ajlm1978/arnes-implementador",
+  "license": "MIT",
+  "keywords": [
+    "harness-engineering",
+    "ai-agents",
+    "claude-code",
+    "agent-skills",
+    "repo-audit",
+    "developer-tools",
+    "spanish"
+  ],
+  "skills": ["./skill/arnes-implementador"]
+}
